@@ -2,10 +2,7 @@ package com.example.wargame.activities;
 
 import android.app.AlertDialog;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Handler;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -13,7 +10,6 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -21,9 +17,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.wargame.R;
 import com.example.wargame.objects.GameManger;
-import com.example.wargame.objects.MediaPlayerGame;
 import com.example.wargame.objects.Player;
-import com.example.wargame.objects.TopTen;
 import com.google.gson.Gson;
 
 public class Activity_Game extends AppCompatActivity {
@@ -37,61 +31,19 @@ public class Activity_Game extends AppCompatActivity {
     private ImageView img_playerOne;
     private ImageView img_playerTwo;
     private GameManger gameManger;
-    private MediaPlayerGame mp;
-    private int mInterval = 1000;
-    private Handler mHandler;
-    private boolean isRun;
-    private ProgressBar progressBar;
-    private TopTen topTen;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_game);
-        mp = new MediaPlayerGame(this, R.raw.snd_start);
-        mHandler = new Handler();
         gameManger = new GameManger();
         connectObjects();
-      //  clearSps();
     }
 
-    /**
-     * clear memory
-     */
-    private void clearSps() {
-        SharedPreferences prefs = getSharedPreferences(gameManger.getShardPrefName(), MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.clear();
-        editor.apply();
-    }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        stopRepeatingTask();
-    }
 
-    Runnable mStatusChecker = new Runnable() {
-        @Override
-        public void run() {
-            try {
-
-                play();
-
-            } finally {
-                mHandler.postDelayed(mStatusChecker, mInterval);
-            }
-        }
-    };
-
-    void startRepeatingTask() {
-        mStatusChecker.run();
-    }
-
-    void stopRepeatingTask() {
-        mHandler.removeCallbacks(mStatusChecker);
-    }
 
 
     /**
@@ -102,7 +54,6 @@ public class Activity_Game extends AppCompatActivity {
             showCards();
             gameManger.showDown();
             updateScore();
-            progressBar.incrementProgressBy(1);
         } else {
             openWinnerActivity(gameManger.getWinner());
         }
@@ -124,7 +75,6 @@ public class Activity_Game extends AppCompatActivity {
         img_playerTwo.setImageResource(gameManger.getPlayerTwo().getImgPlayer());
         set_BTN_addNames();
         setBtn_play();
-        setProgressBar();
     }
 
     /**
@@ -139,7 +89,6 @@ public class Activity_Game extends AppCompatActivity {
                 String playerOneName = edt_playerOneName.getText().toString();
                 String playerTwoName = edt_playerTwoName.getText().toString();
                 if (gameManger.setPlayerName(true, playerOneName) && gameManger.setPlayerName(false, playerTwoName)) {
-                    mp.playSound();
                     hideLayoutGetName();
                     showLayoutGame();
                 } else {
@@ -156,11 +105,7 @@ public class Activity_Game extends AppCompatActivity {
         btn_play.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!isRun) {
-                    isRun = true;
-                    mp.setRawSound(R.raw.snd_card_placed);
-                    startRepeatingTask();
-                }
+                play();
             }
         });
     }
@@ -172,7 +117,6 @@ public class Activity_Game extends AppCompatActivity {
         RelativeLayout layoutPlayerRight = findViewById(R.id.game_layout_rightPlayer);
         RelativeLayout layoutPlayerLeft = findViewById(R.id.game_layout_leftPlayer);
         LinearLayout layoutCards = findViewById(R.id.game_layout_cards);
-        progressBar.setVisibility(View.VISIBLE);
         layoutCards.setVisibility(View.VISIBLE);
         layoutPlayerRight.setVisibility(View.VISIBLE);
         layoutPlayerLeft.setVisibility(View.VISIBLE);
@@ -198,14 +142,6 @@ public class Activity_Game extends AppCompatActivity {
     }
 
 
-    /**
-     * set progressBar color and style.
-     */
-    private void setProgressBar() {
-        progressBar = findViewById(R.id.game_PB_ProgressBar);
-        progressBar.getProgressDrawable().setColorFilter(
-                Color.LTGRAY, android.graphics.PorterDuff.Mode.SRC_IN);
-    }
 
 
     /**
@@ -219,41 +155,17 @@ public class Activity_Game extends AppCompatActivity {
         Intent winnerActivity = new Intent(Activity_Game.this, Activity_Declare_Winner.class);
         String strWinner = gson.toJson(winner);
         winnerActivity.putExtra("winner", strWinner);
-        addWinnerToShardPref(winner);
         startActivity(winnerActivity);
         finish();
     }
 
-    /**
-     * adds winner to the memory
-     * @param winner
-     */
-    private void addWinnerToShardPref(Player winner) {
-        if (winner.getImgPlayer() != 0) {
-            Gson gson = new Gson();
-            SharedPreferences prefs = getSharedPreferences(gameManger.getShardPrefName(), MODE_PRIVATE);
-            String strTopten = prefs.getString("Topten", "empty");
-            if (strTopten.equals("empty")) {
-                topTen = new TopTen();
-            } else {
-                topTen = gson.fromJson(strTopten, TopTen.class);
-            }
-            topTen.addPlayer(winner);
-            strTopten = gson.toJson(topTen);
-            SharedPreferences.Editor editor = getSharedPreferences(gameManger.getShardPrefName(), MODE_PRIVATE).edit();
-            editor.putString("Topten", strTopten);
-            editor.apply();
-        }
-    }
 
     /**
      * set cards image at activity_game.xml
      */
     private void showCards() {
-
         img_playerOneCard.setImageResource(getResources().getIdentifier(gameManger.getCard_playerOne().getCardImageResource(), null, getPackageName()));
         img_playerTwoCard.setImageResource(getResources().getIdentifier(gameManger.getCard_playerTwo().getCardImageResource(), null, getPackageName()));
-        mp.playSound();
     }
 
 

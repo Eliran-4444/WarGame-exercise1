@@ -10,7 +10,6 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.wargame.R;
-import com.example.wargame.objects.MediaPlayerGame;
 import com.example.wargame.objects.Player;
 import com.google.gson.Gson;
 
@@ -20,7 +19,6 @@ public class Activity_Declare_Winner extends AppCompatActivity {
     private TextView winnerLBL;
     private ImageButton backBTN;
     private String drawIMG = "@drawable/img_draw";
-    private MediaPlayerGame mp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,16 +42,13 @@ public class Activity_Declare_Winner extends AppCompatActivity {
      */
     private void showWinner(Player winner) {
         if (!(winner.getImgPlayer() == 0)) {
-            mp = new MediaPlayerGame(this, R.raw.snd_winner);
             winnerIMG.setImageResource(winner.getImgPlayer());
             winnerLBL.setText(winner.getName());
         } else {
-            mp = new MediaPlayerGame(this, R.raw.snd_draw);
             winnerLBL = findViewById(R.id.winner_LBL_winnerTitle);
             winnerLBL.setText("Draw");
             winnerIMG.setImageResource(R.drawable.img_draw);
         }
-        mp.playSound();
     }
 
     /**

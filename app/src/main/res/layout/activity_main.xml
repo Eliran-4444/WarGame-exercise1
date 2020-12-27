@@ -50,20 +50,13 @@
             android:backgroundTint="@color/red"
             android:text="Play"
             android:textAllCaps="false"
-            android:textSize="20sp" />
+            android:textSize="20sp" /><![CDATA[
 
         >
 
-        <Button
-            android:id="@+id/main_BTN_records"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:backgroundTint="@color/red"
-            android:text="Records"
-            android:textAllCaps="false"
-            android:textSize="20sp" />
         >
 
+    ]]>
     </LinearLayout>
 
 
